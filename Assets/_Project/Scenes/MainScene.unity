@@ -602,11 +602,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6312157787355633521, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_text
-      value: Next Level
+      value: Next
       objectReference: {fileID: 0}
     - target: {fileID: 6312157787355633521, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_fontSize
-      value: 96.1
+      value: 73.5
       objectReference: {fileID: 0}
     - target: {fileID: 6399845634451293370, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_Name
@@ -694,10 +694,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxBalloons: 3
+  _mainCamera: {fileID: 519420031}
   _balloonPrefabs:
   - {fileID: 5338990916335043547, guid: 6029d420388993d48ade9f83bb42e982, type: 3}
   - {fileID: 1347824494874865056, guid: f49220c69ace06b4da93997b3f1331e3, type: 3}
-  _mainCamera: {fileID: 519420031}
 --- !u!1 &1622915217
 GameObject:
   m_ObjectHideFlags: 0
@@ -874,6 +874,10 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6377020077638810597, guid: 99d1f73267cd76348a5406c65f908007, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -949,11 +953,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5505191140410245884, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -182.17
+      value: -182.17004
       objectReference: {fileID: 0}
     - target: {fileID: 5505191140410245884, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -90.38
+      value: -90.37988
       objectReference: {fileID: 0}
     - target: {fileID: 5505191140410245884, guid: bcd2362be4295b54abdbf6a8c000d65c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
