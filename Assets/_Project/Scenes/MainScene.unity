@@ -694,6 +694,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _maxBalloons: 3
+  _horizontalSpeedRange: {x: 1, y: 2}
+  _verticalSpeedRange: {x: 1, y: 2}
+  _amplitudeRange: {x: 1, y: 2}
   _mainCamera: {fileID: 519420031}
   _balloonPrefabs:
   - {fileID: 5338990916335043547, guid: 6029d420388993d48ade9f83bb42e982, type: 3}
