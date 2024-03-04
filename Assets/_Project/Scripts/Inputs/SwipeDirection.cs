@@ -2,7 +2,8 @@ namespace OctanGames.Inputs
 {
     public enum SwipeDirection
     {
-        Up = 0,
+        None = 0,
+        Up,
         Down,
         Left,
         Right
