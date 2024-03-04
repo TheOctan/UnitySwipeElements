@@ -13,28 +13,6 @@ namespace OctanGames.Inputs
         private Vector2 _touchUpPosition;
         private Vector2 _touchDownPosition;
 
-        private void Update()
-        {
-            if (Input.touches.Length <= 0)
-            {
-                return;
-            }
-
-            Touch touch = Input.touches[0];
-
-            switch (touch.phase)
-            {
-                case TouchPhase.Began:
-                    _touchUpPosition = touch.position;
-                    _touchDownPosition = touch.position;
-                    break;
-                case TouchPhase.Ended:
-                    _touchDownPosition = touch.position;
-                    DetectSwipe();
-                    break;
-            }
-        }
-        
         public void OnPointerDown(PointerEventData eventData)
         {
             _touchUpPosition = eventData.position;
