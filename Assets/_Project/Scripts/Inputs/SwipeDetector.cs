@@ -79,7 +79,7 @@ namespace OctanGames.Inputs
             {
                 direction = _touchDownPosition.x - _touchUpPosition.x > 0
                     ? SwipeDirection.Right
-                    : SwipeDirection.Down;
+                    : SwipeDirection.Left;
             }
 
             return direction;
