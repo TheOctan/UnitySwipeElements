@@ -18,21 +18,22 @@ namespace OctanGames.Gameplay
         [SerializeField] private float _tableWidth;
         [SerializeField] private float _tableHeight;
 
+        private CellSettings _cellSettings;
+        private LevelLoader _levelLoader;
         private CellView[,] _cellMap;
         private Vector2 _cellSize;
         private Vector3 _finalLeftUpCorner;
         private int _rows;
         private int _columns;
+
         private bool _isAnimated;
 
-        private ILevelLibrary _levelLibrary;
-        private CellSettings _cellSettings;
         private readonly Vector2Int _invalidPosition = new(-1,-1);
 
         private void Start()
         {
-            _levelLibrary = ServiceLocator.GetInstance<ILevelLibrary>();
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
+            _levelLoader = ServiceLocator.GetInstance<LevelLoader>();
         private void GenerateTable(int[,] map, CornerTuple tableCorners)
         {
             _cellMap = new CellView[_rows, _columns];
