@@ -22,7 +22,8 @@ namespace OctanGames.Gameplay
         [Header("Settings")]
         [SerializeField, Min(0.1f)] private float _movementDuration = 0.5f;
         [SerializeField, Min(0.1f)] private float _fallDuration = 0.5f;
-        [SerializeField, Min(0.1f)] private float _destructionDuration = 1.5f;
+        [SerializeField, Min(0.1f)] private float _destroyAnimationDuration = 1.5f;
+        [SerializeField, Min(0.1f)] private float _idleAnimationDuration = 1.5f;
 
         private CellSettings _cellSettings;
         private LevelLoader _levelLoader;
@@ -37,7 +38,10 @@ namespace OctanGames.Gameplay
         private bool _isAnimated;
         private Action _callBackAfterAnimation;
 
+        private readonly Stack<Sequence> _callStackSequences = new();
+        private readonly List<CellView> _allCells = new();
         private readonly Queue<List<Sequence>> _animationQueue = new();
+
         private readonly Vector2Int _invalidPosition = new(-1,-1);
 
         private void Start()
@@ -115,8 +119,15 @@ namespace OctanGames.Gameplay
                 CellView cell = GetCellByIndex(index);
 
                 Sequence sequence = DOTween.Sequence()
-                    .AppendCallback(() => cell.AnimateDestruction())
-                    .AppendInterval(cell.DestructionAnimationDuration);
+                    .AppendCallback(() =>
+                    {
+                        if (cell != null)
+                        {
+                            cell.AnimateDestruction();
+                        }
+                    })
+                    .AppendInterval(_destroyAnimationDuration)
+                    .SetLink(cell.gameObject);
 
                 animationList.Add(sequence);
 
@@ -156,21 +167,24 @@ namespace OctanGames.Gameplay
         }
         private void DestroyTable()
         {
-            if (_cellMap == null)
+            while (_callStackSequences.Count > 0)
             {
-                return;
+                Sequence sequence = _callStackSequences.Pop();
+                sequence.Kill();
             }
 
-            for (var i = 0; i < _rows; i++)
+            _animationQueue.Clear();
+
+            foreach (CellView cell in _allCells)
             {
-                for (var j = 0; j < _columns; j++)
+                if (cell != null)
                 {
-                    if (_cellMap[i, j] != null)
-                    {
-                        _cellMap[i, j].Destroy();
-                    }
+                    cell.Destroy();
                 }
             }
+            _allCells.Clear();
+
+            _isAnimated = false;
         }
 
         private Sequence GetCellMovementSequence(CellView cell, Vector2Int targetIndex, float duration)
@@ -179,7 +193,8 @@ namespace OctanGames.Gameplay
 
             Sequence sequence = DOTween.Sequence()
                 .AppendCallback(() => SetCellSortingOrder(cell, targetIndex))
-                .Append(DOTween.To(() => cell.transform.position, cell.SetPosition, newPosition, duration));
+                .Append(DOTween.To(() => cell.transform.position, cell.SetPosition, newPosition, duration))
+                .SetLink(cell.gameObject);
 
             return sequence;
         }
@@ -205,17 +220,21 @@ namespace OctanGames.Gameplay
 
                 for (var i = 0; i < list.Count; i++)
                 {
+                    Sequence sequence = list[i];
+                    _callStackSequences.Push(sequence);
+
                     if (i == 0)
                     {
-                        list[i].AppendCallback(PlayAnimations);
+                        sequence.AppendCallback(PlayAnimations);
                     }
 
-                    list[i].Play();
+                    sequence.Play();
                 }
             }
             else
             {
                 _isAnimated = false;
+                _callStackSequences.Clear();
                 _callBackAfterAnimation?.Invoke();
             }
         }
@@ -271,10 +290,11 @@ namespace OctanGames.Gameplay
             SetCellSortingOrder(cell, index);
             cell.SetSize(cellSize);
             cell.SetPosition(cellPosition);
-            cell.Init();
+            cell.Init(_idleAnimationDuration, _destroyAnimationDuration);
             cell.Swiped += OnCellSwiped;
 
             _cellMap[index.x, index.y] = cell;
+            _allCells.Add(cell);
         }
 
         private void SetCellSortingOrder(CellView cell, Vector2Int index)

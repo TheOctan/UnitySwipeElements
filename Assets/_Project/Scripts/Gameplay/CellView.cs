@@ -19,9 +19,6 @@ namespace OctanGames.Gameplay
 
         public event Action<CellView, SwipeDirection> Swiped;
 
-        [Header("Animation")]
-        [SerializeField, Min(0.1f)] private float _idleAnimationDuration = 1.5f;
-        [SerializeField, Min(0.1f)] private float _destructionAnimationDuration = 1.5f;
         [Header("Properties")]
         [SerializeField] private float _up;
         [SerializeField] private float _down;
@@ -36,9 +33,10 @@ namespace OctanGames.Gameplay
         private Sprite[] _destroyAnimation;
         private int _idleAnimationFrame;
         private int _destroyAnimationFrame;
+        private float _destroyAnimationDuration;
+        private float _idleAnimationDuration;
 
         public float AspectRatio => Width / Height;
-        public float DestructionAnimationDuration => _destructionAnimationDuration;
         private float Width => _right + _left;
         private float Height => _up + _down;
         public int DestroyAnimationFrame
@@ -93,8 +91,11 @@ namespace OctanGames.Gameplay
                 corner.RightDownCorner);
         }
 
-        public void Init()
+        public void Init(float idleDuration, float destroyDuration)
         {
+            _idleAnimationDuration = idleDuration;
+            _destroyAnimationDuration = destroyDuration;
+
             AnimateIdle();
         }
 
@@ -130,7 +131,7 @@ namespace OctanGames.Gameplay
                 () => DestroyAnimationFrame, 
                 x => DestroyAnimationFrame = x, 
                 _destroyAnimation.Length - 1,
-                _destructionAnimationDuration);
+                _destroyAnimationDuration);
 
             _animationLoop = DOTween.Sequence()
                 .Append(animationSequence)
