@@ -13,10 +13,16 @@ namespace OctanGames.Gameplay
     public class TableView : MonoBehaviour
     {
         private const int EMPTY_CELL = 0;
+
         public event Action<Vector2Int, Vector2Int> CellMoved;
 
+        [Header("Properties")]
         [SerializeField] private float _tableWidth;
         [SerializeField] private float _tableHeight;
+        [Header("Settings")]
+        [SerializeField, Min(0.1f)] private float _movementDuration = 0.5f;
+        [SerializeField, Min(0.1f)] private float _fallDuration = 0.5f;
+        [SerializeField, Min(0.1f)] private float _destructionDuration = 1.5f;
 
         private CellSettings _cellSettings;
         private LevelLoader _levelLoader;
@@ -27,13 +33,115 @@ namespace OctanGames.Gameplay
         private int _columns;
 
         private bool _isAnimated;
+        private Action _callBackAfterAnimation;
 
+        private readonly Queue<List<Sequence>> _animationQueue = new();
         private readonly Vector2Int _invalidPosition = new(-1,-1);
 
         private void Start()
         {
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
             _levelLoader = ServiceLocator.GetInstance<LevelLoader>();
+            DOTween.defaultAutoPlay = AutoPlay.None;
+        }
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.white;
+            CornerTuple corner = transform.position.GetCornersFromCenter(_tableHeight, _tableWidth);
+            GizmosWrapper.DrawGizmosRect(
+                corner.LeftUpCorner,
+                corner.RightUpCorner,
+                corner.LeftDownCorner,
+                corner.RightDownCorner);
+        }
+
+        private Vector3 IndexToPosition(Vector2Int index)
+        {
+            var leftUpCellCorner = new Vector3(
+                _finalLeftUpCorner.x + _cellSize.x * index.y,
+                _finalLeftUpCorner.y - _cellSize.y * index.x);
+
+            return leftUpCellCorner.GetCenter(_cellSize);
+        }
+
+        public void CellPlaceChangedAnim(Vector2Int startPosition, Vector2Int endPosition)
+        {
+            var animationList = new List<Sequence>();
+
+            void UpdateCellPosition(CellView cell, Vector2Int targetIndex)
+            {
+                if (cell == null)
+                {
+                    return;
+                }
+
+                Vector3 newPosition = IndexToPosition(targetIndex);
+                Sequence sequence = DOTween.Sequence();
+
+                if (cell.transform.position.x < newPosition.x)
+                {
+                    sequence.AppendCallback(() => SetCellSortingOrder(cell, targetIndex));
+                }
+
+                sequence.Append(DOTween.To(() => cell.transform.position, cell.SetPosition, newPosition, _movementDuration));
+
+                if (cell.transform.position.x >= newPosition.x)
+                {
+                    sequence.AppendCallback(() => SetCellSortingOrder(cell, targetIndex));
+                }
+                animationList.Add(sequence);
+            }
+
+            CellView firstCell = _cellMap[startPosition.x, startPosition.y];
+            UpdateCellPosition(firstCell, endPosition);
+            
+            CellView secondCell = _cellMap[endPosition.x, endPosition.y];
+            UpdateCellPosition(secondCell, startPosition);
+
+            if (animationList.Count > 0)
+            {
+                AddAnimation(animationList);
+            }
+
+            _cellMap[startPosition.x, startPosition.y] = secondCell;
+            _cellMap[endPosition.x, endPosition.y] = firstCell;
+        }
+        private void AddAnimation(List<Sequence> listAnimations)
+        {
+            foreach (Sequence sequence in listAnimations)
+            {
+                sequence.Pause();
+            }
+            _animationQueue.Enqueue(listAnimations);
+
+            if (_isAnimated == false)
+            {
+                PlayAnimations();
+            }
+        }
+        private void PlayAnimations()
+        {
+            if (_animationQueue.Count > 0)
+            {
+                _isAnimated = true;
+                List<Sequence> list = _animationQueue.Dequeue();
+
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (i == 0)
+                    {
+                        list[i].AppendCallback(PlayAnimations);
+                    }
+
+                    list[i].Play();
+                }
+            }
+            else
+            {
+                _isAnimated = false;
+                _callBackAfterAnimation?.Invoke();
+            }
+        }
         private void GenerateTable(int[,] map, CornerTuple tableCorners)
         {
             _cellMap = new CellView[_rows, _columns];
