@@ -12,6 +12,7 @@ namespace OctanGames.Gameplay
 {
     public class TableView : MonoBehaviour
     {
+        private const int EMPTY_CELL = 0;
         public event Action<Vector2Int, Vector2Int> CellMoved;
 
         [SerializeField] private float _width;
@@ -24,13 +25,32 @@ namespace OctanGames.Gameplay
 
         private ILevelLibrary _levelLibrary;
         private CellSettings _cellSettings;
+        private readonly Vector2Int _invalidPosition = new(-1,-1);
 
         private void Start()
         {
             _levelLibrary = ServiceLocator.GetInstance<ILevelLibrary>();
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
         }
+        private void SetCell(int[,] map, Vector2Int position, Vector3 leftUpCell, Vector2 cellSize)
+        {
+            int cellType = map[position.x, position.y];
+            if (cellType == EMPTY_CELL)
+            {
+                return;
+            }
 
+            CellView cell = Instantiate(_cellSettings.CellPrefab);
+            CellSettings.CellAnimation cellAnimation = _cellSettings.CellAnimations[cellType - 1];
+            cell.SetAnimation(cellAnimation);
+            SetCellSortingOrder(cell, position);
+            cell.SetSize(cellSize);
+            cell.SetPosition(leftUpCell.GetCenter(cellSize));
+            cell.Init();
+            cell.Swiped += OnCellSwiped;
+
+            _cellMap[position.x, position.y] = cell;
+        }
         private void SetCellSortingOrder(CellView cell, Vector2Int index)
         {
             cell.SetSortingOrder(index.y * _rows + (_rows - index.x));
@@ -43,7 +63,7 @@ namespace OctanGames.Gameplay
             }
 
             Vector2Int cellPosition = GetCellPosition(cell);
-            if (cellPosition == new Vector2Int(-1,-1))
+            if (cellPosition == _invalidPosition)
             {
                 return;
             }
@@ -69,7 +89,7 @@ namespace OctanGames.Gameplay
                 }
             }
 
-            return new Vector2Int(-1, -1);
+            return _invalidPosition;
         }
         private Vector2Int GetNextPosition(Vector2Int currentPosition, SwipeDirection swipeDirection)
         {

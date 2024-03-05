@@ -4,6 +4,7 @@ using DG.Tweening.Core;
 using DG.Tweening.Plugins.Options;
 using Extensions;
 using OctanGames.Extensions;
+using OctanGames.Gameplay.Levels;
 using OctanGames.Inputs;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -17,7 +18,7 @@ namespace OctanGames.Gameplay
         private const float IDLE_ANIMATION_DURATION = 1.5f;
         private const int ENDLESS_LOOP = -1;
 
-        public event Action<CellView, SwipeDirection> Moved;
+        public event Action<CellView, SwipeDirection> Swiped;
 
         [Header("Properties")]
         [SerializeField] private float _up;
@@ -70,7 +71,12 @@ namespace OctanGames.Gameplay
 
         private void OnSwiped(SwipeData swipeData)
         {
-            Moved?.Invoke(this, swipeData.Direction);
+            Swiped?.Invoke(this, swipeData.Direction);
+        }
+
+        private void OnDestroy()
+        {
+            _swipeDetector.Swiped -= OnSwiped;
         }
 
         private void OnDrawGizmosSelected()
@@ -120,14 +126,14 @@ namespace OctanGames.Gameplay
                 .SetLoops(ENDLESS_LOOP, LoopType.Restart);
         }
 
-        public void SetSize(float width, float height)
+        public void SetSize(Vector2 size)
         {
             Transform parent = transform.parent;
             transform.parent = null;
 
             transform.localScale = new Vector3(
-                width / (Width * transform.lossyScale.x),
-                height / (Height * transform.localScale.y),
+                size.x / (Width * transform.lossyScale.x),
+                size.y / (Height * transform.localScale.y),
                 transform.localScale.z);
 
             transform.parent = parent;
@@ -143,18 +149,20 @@ namespace OctanGames.Gameplay
             transform.position = position;
         }
 
-        public void SetSprite(Sprite sprite)
+        private void SetSprite(Sprite sprite)
         {
             _spriteRenderer.sprite = sprite;
         }
 
-        public void SetAnimation(Sprite[] idleAnimation, Sprite[] destroyAnimation)
+        public void SetAnimation(CellSettings.CellAnimation cellAnimation)
         {
-            _idleAnimation = idleAnimation;
-            _destroyAnimation = destroyAnimation;
+            _idleAnimation = cellAnimation.IdleAnimation;
+            _destroyAnimation = cellAnimation.DestroyAnimation;
 
             _idleAnimationFrame = 0;
             _destroyAnimationFrame = 0;
+
+            SetSprite(cellAnimation.Sprite);
         }
 
         public void SetSortingOrder(int order)
