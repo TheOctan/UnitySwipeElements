@@ -15,12 +15,14 @@ namespace OctanGames.Gameplay
         private const int EMPTY_CELL = 0;
         public event Action<Vector2Int, Vector2Int> CellMoved;
 
-        [SerializeField] private float _width;
-        [SerializeField] private float _height;
+        [SerializeField] private float _tableWidth;
+        [SerializeField] private float _tableHeight;
 
+        private CellView[,] _cellMap;
+        private Vector2 _cellSize;
+        private Vector3 _finalLeftUpCorner;
         private int _rows;
         private int _columns;
-        private CellView[,] _cellMap;
         private bool _isAnimated;
 
         private ILevelLibrary _levelLibrary;
@@ -31,9 +33,44 @@ namespace OctanGames.Gameplay
         {
             _levelLibrary = ServiceLocator.GetInstance<ILevelLibrary>();
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
+        private void GenerateTable(int[,] map, CornerTuple tableCorners)
+        {
+            _cellMap = new CellView[_rows, _columns];
+
+            float aspectRatioCell = _cellSettings.CellPrefab.AspectRatio;
+
+            float potentialCellWidth = _tableWidth / _columns;
+            float potentialCellHeight = _tableHeight / _rows;
+
+            float minSide = Mathf.Min(potentialCellWidth / aspectRatioCell, potentialCellHeight);
+            _cellSize = new Vector2(minSide * aspectRatioCell, minSide );
+
+            float finalTableHeight = _cellSize.y * _rows;
+            float finalTableWidth = _cellSize.x * _columns;
+
+            float halfTableWidth = (tableCorners.RightDownCorner.x - tableCorners.LeftDownCorner.x) / 2f;
+            float horizontalOffset = halfTableWidth - finalTableWidth / 2;
+
+            _finalLeftUpCorner = new Vector3(
+                tableCorners.LeftDownCorner.x + horizontalOffset,
+                tableCorners.LeftDownCorner.y + finalTableHeight);
+
+            for (int i = _rows - 1; i >= 0; i--)
+            {
+                for (var j = 0; j < _columns; j++)
+                {
+                    var indexPosition = new Vector2Int(i, j);
+                    var leftUpCellPosition = new Vector3(
+                        _finalLeftUpCorner.x + _cellSize.x * j,
+                        _finalLeftUpCorner.y - _cellSize.y * i);
+
+                    Vector3 cellPosition = leftUpCellPosition.GetCenter(_cellSize);
+
+                    SetupCell(map, indexPosition, cellPosition, _cellSize);
+                }
+            }
         }
-        private void SetCell(int[,] map, Vector2Int position, Vector3 leftUpCell, Vector2 cellSize)
-        private void SetCell(int[,] map, Vector2Int indexPosition, Vector3 leftUpCell, Vector2 cellSize)
+        private void SetupCell(int[,] map, Vector2Int indexPosition, Vector3 cellPosition, Vector2 cellSize)
         {
             int cellType = map[indexPosition.x, indexPosition.y];
             if (cellType == EMPTY_CELL)
@@ -46,7 +83,7 @@ namespace OctanGames.Gameplay
             cell.SetAnimation(cellAnimation);
             SetCellSortingOrder(cell, indexPosition);
             cell.SetSize(cellSize);
-            cell.SetPosition(leftUpCell.GetCenter(cellSize));
+            cell.SetPosition(cellPosition);
             cell.Init();
             cell.Swiped += OnCellSwiped;
 
