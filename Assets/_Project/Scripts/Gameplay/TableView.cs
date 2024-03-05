@@ -38,7 +38,6 @@ namespace OctanGames.Gameplay
         private bool _isAnimated;
         private Action _callBackAfterAnimation;
 
-        private readonly Stack<Sequence> _callStackSequences = new();
         private readonly List<CellView> _allCells = new();
         private readonly Queue<List<Sequence>> _animationQueue = new();
 
@@ -167,12 +166,6 @@ namespace OctanGames.Gameplay
         }
         private void DestroyTable()
         {
-            while (_callStackSequences.Count > 0)
-            {
-                Sequence sequence = _callStackSequences.Pop();
-                sequence.Kill();
-            }
-
             _animationQueue.Clear();
 
             foreach (CellView cell in _allCells)
@@ -221,7 +214,6 @@ namespace OctanGames.Gameplay
                 for (var i = 0; i < list.Count; i++)
                 {
                     Sequence sequence = list[i];
-                    _callStackSequences.Push(sequence);
 
                     if (i == 0)
                     {
@@ -234,7 +226,6 @@ namespace OctanGames.Gameplay
             else
             {
                 _isAnimated = false;
-                _callStackSequences.Clear();
                 _callBackAfterAnimation?.Invoke();
             }
         }
