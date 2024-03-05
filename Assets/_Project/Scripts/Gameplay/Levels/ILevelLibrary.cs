@@ -1,8 +1,8 @@
 ﻿namespace OctanGames.Gameplay.Levels
 {
-    public interface ILevels
+    public interface ILevelLibrary
     {
-        int[,] this[int index] { get; }
+        int[,] GetMapByNumber(int index);
         int Count { get; }
     }
 }
