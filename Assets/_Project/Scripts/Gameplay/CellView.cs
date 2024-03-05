@@ -91,10 +91,10 @@ namespace OctanGames.Gameplay
                 _right * lossyScale.x);
 
             GizmosWrapper.DrawGizmosRect(
-                corner.leftUpCorner,
-                corner.rightUpCorner,
-                corner.leftDownCorner,
-                corner.rightDownCorner);
+                corner.LeftUpCorner,
+                corner.RightUpCorner,
+                corner.LeftDownCorner,
+                corner.RightDownCorner);
         }
 
         public void Init()

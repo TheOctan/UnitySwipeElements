@@ -2,18 +2,29 @@
 
 namespace OctanGames.Extensions
 {
+    public struct CornerTuple
+    {
+        public CornerTuple(Vector3 leftUp, Vector3 rightUp, Vector3 leftDown, Vector3 rightDown)
+        {
+            LeftUpCorner = leftUp;
+            RightUpCorner = rightUp;
+            LeftDownCorner = leftDown;
+            RightDownCorner = rightDown;
+        }
+
+        public Vector3 LeftUpCorner;
+        public Vector3 RightUpCorner;
+        public Vector3 LeftDownCorner;
+        public Vector3 RightDownCorner;
+    }
     public static class VectorExtensions
     {
-        public static (Vector3 leftUpCorner,
-            Vector3 rightUpCorner, 
-            Vector3 leftDownCorner,
-            Vector3 rightDownCorner) GetCornersFromCenter(this Vector3 center, float height, float width)
+        public static CornerTuple GetCornersFromCenter(this Vector3 center, float height, float width)
         {
             return center.GetCornersFromSides(height / 2f, height / 2f, width / 2f, width / 2f);
         }
 
-        public static (Vector3 leftUpCorner, Vector3 rightUpCorner, Vector3 leftDownCorner, Vector3 rightDownCorner)
-            GetCornersFromLeftUpCorner(this Vector3 leftUp, float height, float width)
+        public static CornerTuple GetCornersFromLeftUpCorner(this Vector3 leftUp, float height, float width)
         {
             Vector3 rightUp = leftUp;
             rightUp.x += width;
@@ -25,20 +36,18 @@ namespace OctanGames.Extensions
             rightDown.x += width;
             rightDown.y -= height;
 
-            return (leftUp, rightUp, leftDown, rightDown);
+            return new CornerTuple(leftUp, rightUp, leftDown, rightDown);
         }
 
-        public static (Vector3 leftUpCorner, Vector3 rightUpCorner, Vector3 leftDownCorner, Vector3 rightDownCorner)
-            GetAllCornersFrom2Corners(this Vector3 leftUp, Vector3 rightDown)
+        public static CornerTuple GetAllCornersFrom2Corners(this Vector3 leftUp, Vector3 rightDown)
         {
             var rightUp = new Vector3(rightDown.x, leftUp.y);
             var leftDown = new Vector3(leftUp.x, rightDown.y);
 
-            return (leftUp, rightUp, leftDown, rightDown);
+            return new CornerTuple(leftUp, rightUp, leftDown, rightDown);
         }
-        
-        public static (Vector3 leftUpCorner, Vector3 rightUpCorner, Vector3 leftDownCorner, Vector3 rightDownCorner)
-            GetCornersFromSides(this Vector3 center, float up, float down, float left, float right)
+
+        public static CornerTuple GetCornersFromSides(this Vector3 center, float up, float down, float left, float right)
         {
             Vector3 leftUp = center;
             leftUp.x -= left;
@@ -56,7 +65,7 @@ namespace OctanGames.Extensions
             rightDown.x += right;
             rightDown.y -= down;
             
-            return (leftUp, rightUp, leftDown, rightDown);
+            return new CornerTuple(leftUp, rightUp, leftDown, rightDown);
         }
 
         public static Vector3 GetCenter(this Vector3 leftUpCorner, Vector2 size)

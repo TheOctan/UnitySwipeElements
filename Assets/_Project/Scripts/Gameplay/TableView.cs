@@ -33,8 +33,9 @@ namespace OctanGames.Gameplay
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
         }
         private void SetCell(int[,] map, Vector2Int position, Vector3 leftUpCell, Vector2 cellSize)
+        private void SetCell(int[,] map, Vector2Int indexPosition, Vector3 leftUpCell, Vector2 cellSize)
         {
-            int cellType = map[position.x, position.y];
+            int cellType = map[indexPosition.x, indexPosition.y];
             if (cellType == EMPTY_CELL)
             {
                 return;
@@ -43,13 +44,13 @@ namespace OctanGames.Gameplay
             CellView cell = Instantiate(_cellSettings.CellPrefab);
             CellSettings.CellAnimation cellAnimation = _cellSettings.CellAnimations[cellType - 1];
             cell.SetAnimation(cellAnimation);
-            SetCellSortingOrder(cell, position);
+            SetCellSortingOrder(cell, indexPosition);
             cell.SetSize(cellSize);
             cell.SetPosition(leftUpCell.GetCenter(cellSize));
             cell.Init();
             cell.Swiped += OnCellSwiped;
 
-            _cellMap[position.x, position.y] = cell;
+            _cellMap[indexPosition.x, indexPosition.y] = cell;
         }
         private void SetCellSortingOrder(CellView cell, Vector2Int index)
         {
