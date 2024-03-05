@@ -13,13 +13,15 @@ namespace OctanGames.Gameplay
 {
     public class CellView : MonoBehaviour
     {
+        private const int ENDLESS_LOOP = -1;
         private const float MIN_ANIMATION_DELAY = 1f;
         private const float MAX_ANIMATION_DELAY = 3f;
-        private const float IDLE_ANIMATION_DURATION = 1.5f;
-        private const int ENDLESS_LOOP = -1;
 
         public event Action<CellView, SwipeDirection> Swiped;
 
+        [Header("Animation")]
+        [SerializeField, Min(0.1f)] private float _idleAnimationDuration = 1.5f;
+        [SerializeField, Min(0.1f)] private float _destructionAnimationDuration = 1.5f;
         [Header("Properties")]
         [SerializeField] private float _up;
         [SerializeField] private float _down;
@@ -36,7 +38,7 @@ namespace OctanGames.Gameplay
         private int _destroyAnimationFrame;
 
         public float AspectRatio => Width / Height;
-        public int BoomIndexMax => _destroyAnimation.Length - 1;
+        public float DestructionAnimationDuration => _destructionAnimationDuration;
         private float Width => _right + _left;
         private float Height => _up + _down;
         public int DestroyAnimationFrame
@@ -44,12 +46,6 @@ namespace OctanGames.Gameplay
             get => _destroyAnimationFrame;
             set
             {
-                if (_animationLoop != null)
-                {
-                    _animationLoop.Kill();
-                    _animationLoop = null;
-                }
-
                 _destroyAnimationFrame = value;
                 SetSprite(_destroyAnimation[value]);
             }
@@ -99,10 +95,10 @@ namespace OctanGames.Gameplay
 
         public void Init()
         {
-            Animate();
+            AnimateIdle();
         }
 
-        private void Animate()
+        private void AnimateIdle()
         {
             float delay = Random.Range(MIN_ANIMATION_DELAY, MAX_ANIMATION_DELAY);
 
@@ -112,7 +108,7 @@ namespace OctanGames.Gameplay
                 () => IdleAnimationFrame, 
                 x => IdleAnimationFrame = x, 
                 _idleAnimation.Length - 1,
-                IDLE_ANIMATION_DURATION);
+                _idleAnimationDuration);
 
             _animationLoop = DOTween.Sequence()
                 .Append(animationSequence)
@@ -121,9 +117,25 @@ namespace OctanGames.Gameplay
                 .AppendCallback(() =>
                 {
                     IdleAnimationFrame = 0;
-                    Animate();
+                    AnimateIdle();
                 })
                 .SetLoops(ENDLESS_LOOP, LoopType.Restart);
+        }
+
+        public void AnimateDestruction()
+        {
+            _animationLoop?.Kill();
+
+            TweenerCore<int,int,NoOptions> animationSequence = DOTween.To(
+                () => DestroyAnimationFrame, 
+                x => DestroyAnimationFrame = x, 
+                _destroyAnimation.Length - 1,
+                _destructionAnimationDuration);
+
+            _animationLoop = DOTween.Sequence()
+                .Append(animationSequence)
+                .SetEase(Ease.Linear)
+                .AppendCallback(Destroy);
         }
 
         public void SetSize(Vector2 size)
@@ -154,7 +166,7 @@ namespace OctanGames.Gameplay
             _spriteRenderer.sprite = sprite;
         }
 
-        public void SetAnimation(CellSettings.CellAnimation cellAnimation)
+        public void SetAnimations(CellSettings.CellAnimation cellAnimation)
         {
             _idleAnimation = cellAnimation.IdleAnimation;
             _destroyAnimation = cellAnimation.DestroyAnimation;

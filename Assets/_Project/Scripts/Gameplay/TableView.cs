@@ -86,7 +86,7 @@ namespace OctanGames.Gameplay
         }
         public void AnimateCellFalling(List<FallData> cellModelFalls)
         {
-            var animList = new List<Sequence>();
+            var animationList = new List<Sequence>();
             foreach (FallData modelFall in cellModelFalls)
             {
                 CellView cell = _cellMap[modelFall.StartIndex.x, modelFall.StartIndex.y];
@@ -96,34 +96,36 @@ namespace OctanGames.Gameplay
 
                 float duration = _fallDuration * modelFall.FallStep;
                 Sequence sequence = GetCellMovementSequence(cell, targetIndex, duration);
-                animList.Add(sequence);
+                animationList.Add(sequence);
 
                 SetCellByIndex(targetIndex, cell);
                 SetCellByIndex(modelFall.StartIndex, null);
             }
 
-            if (animList.Count > 0)
+            if (animationList.Count > 0)
             {
-                AddAnimation(animList);
+                AddAnimation(animationList);
             }
         }
         public void AnimateCellDestroying(List<Vector2Int> indexes)
         {
-            var animList = new List<Sequence>();
+            var animationList = new List<Sequence>();
             foreach (Vector2Int index in indexes)
             {
-                CellView cell = _cellMap[index.x, index.y];
-                animList.Add(DOTween.Sequence()
-                    .Append(DOTween.To(() => cell.DestroyAnimationFrame, x => cell.DestroyAnimationFrame = x, cell.BoomIndexMax,
-                        _destructionDuration)).SetEase(Ease.Linear)
-                    .AppendCallback(() => cell.Destroy()));
+                CellView cell = GetCellByIndex(index);
 
-                _cellMap[index.x, index.y] = null;
+                Sequence sequence = DOTween.Sequence()
+                    .AppendCallback(() => cell.AnimateDestruction())
+                    .AppendInterval(cell.DestructionAnimationDuration);
+
+                animationList.Add(sequence);
+
+                SetCellByIndex(index, null);
             }
 
-            if (animList.Count > 0)
+            if (animationList.Count > 0)
             {
-                AddAnimation(animList);
+                AddAnimation(animationList);
             }
         }
 
@@ -265,7 +267,7 @@ namespace OctanGames.Gameplay
 
             CellView cell = Instantiate(_cellSettings.CellPrefab);
             CellSettings.CellAnimation cellAnimation = _cellSettings.CellAnimations[cellType - 1];
-            cell.SetAnimation(cellAnimation);
+            cell.SetAnimations(cellAnimation);
             SetCellSortingOrder(cell, index);
             cell.SetSize(cellSize);
             cell.SetPosition(cellPosition);
