@@ -1,5 +1,6 @@
 using OctanGames.Gameplay;
 using OctanGames.Gameplay.Levels;
+using OctanGames.Services;
 using UnityEngine;
 
 namespace OctanGames.Infrastructure
@@ -10,7 +11,6 @@ namespace OctanGames.Infrastructure
         [SerializeField] private LevelLibraryLibrary _levels;
         [SerializeField] private TableView _tableView;
         [SerializeField] private LevelLoader _levelLoader;
-        
 
         private void Awake()
         {
@@ -18,6 +18,7 @@ namespace OctanGames.Infrastructure
             ServiceLocator.Bind<ILevelLibrary>(_levels);
             ServiceLocator.Bind(_tableView);
             ServiceLocator.Bind(_levelLoader);
+            ServiceLocator.Bind<IDataService>(new JsonDataService());
         }
     }
 }
