@@ -21,7 +21,11 @@ namespace OctanGames.Gameplay
             _appActiveHandler = ServiceLocator.GetInstance<IAppActiveHandler>();
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
 
+#if UNITY_EDITOR
             _appActiveHandler.ApplicationClosed += OnApplicationClosed;
+#else
+            _appActiveHandler.ApplicationPaused += OnApplicationPaused;
+#endif
         }
 
         public void Init(GridModel model)
@@ -93,12 +97,19 @@ namespace OctanGames.Gameplay
 
         private void OnApplicationClosed()
         {
-            SaveLevel();
-        }
-        private void SaveLevel()
-        {
             _appActiveHandler.ApplicationClosed -= OnApplicationClosed;
 
+            SaveLevel();
+        }
+        private void OnApplicationPaused()
+        {
+            _appActiveHandler.ApplicationPaused -= OnApplicationPaused;
+
+            SaveLevel();
+        }
+
+        private void SaveLevel()
+        {
             var levelData = new LevelData()
             {
                 Map = _gridModel.GetMapScreenshot(),
