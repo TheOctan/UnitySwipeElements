@@ -1,3 +1,4 @@
+using System;
 using OctanGames.Gameplay;
 using OctanGames.Gameplay.Levels;
 using OctanGames.Services;
@@ -13,6 +14,8 @@ namespace OctanGames.Infrastructure
         [SerializeField] private LevelLoader _levelLoader;
         [SerializeField] private AppActiveHandler _appActiveHandler;
 
+        private GridController _gridController;
+
         private void Awake()
         {
             ServiceLocator.Bind(_cellSettings);
@@ -21,6 +24,14 @@ namespace OctanGames.Infrastructure
             ServiceLocator.Bind<ILevelLoader>(_levelLoader);
             ServiceLocator.Bind<IDataService>(new JsonDataService());
             ServiceLocator.Bind<IAppActiveHandler>(_appActiveHandler);
+
+            _gridController = new GridController(_tableView);
+            ServiceLocator.Bind(_gridController);
+        }
+
+        private void OnDestroy()
+        {
+            _gridController.Dispose();
         }
     }
 }

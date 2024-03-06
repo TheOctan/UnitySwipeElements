@@ -12,6 +12,8 @@ namespace OctanGames.Gameplay
         private readonly TableView _tableView;
         private GridModel _gridModel;
 
+        private bool _levelIsFinished;
+
         public GridController(TableView tableView)
         {
             _tableView = tableView;
@@ -19,7 +21,11 @@ namespace OctanGames.Gameplay
             _appActiveHandler = ServiceLocator.GetInstance<IAppActiveHandler>();
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
 
+#if UNITY_EDITOR
             _appActiveHandler.ApplicationClosed += OnApplicationClosed;
+#else
+            _appActiveHandler.ApplicationPaused += OnApplicationPaused;
+#endif
         }
 
         public void Init(GridModel model)
@@ -37,13 +43,35 @@ namespace OctanGames.Gameplay
             UnsubscribeFromModel();
         }
 
+        public void SwitchNextLevel()
+        {
+            if (_levelIsFinished)
+            {
+                return;
+            }
+
+            _levelLoader.SwitchNextLevel();
+            _tableView.DestroyTable();
+            _tableView.InitNewLevel();
+        }
+        public void RestartLevel()
+        {
+            if (_levelIsFinished)
+            {
+                return;
+            }
+
+            _tableView.DestroyTable();
+            _tableView.InitNewLevel();
+        }
+
         private void SubscribeToModel()
         {
             _tableView.CellMoved += _gridModel.MoveCell;
             _gridModel.CellPositionChanged += _tableView.AnimateCellSwapping;
             _gridModel.CellsFell += _tableView.AnimateCellFalling;
             _gridModel.CellsDestroyed += _tableView.AnimateCellDestroying;
-            _gridModel.LevelFinished += _tableView.SwitchNextLevelAfterAnimation;
+            _gridModel.LevelFinished += OnLevelFinished;
         }
         private void UnsubscribeFromModel()
         {
@@ -51,13 +79,35 @@ namespace OctanGames.Gameplay
             _gridModel.CellPositionChanged -= _tableView.AnimateCellSwapping;
             _gridModel.CellsFell -= _tableView.AnimateCellFalling;
             _gridModel.CellsDestroyed -= _tableView.AnimateCellDestroying;
-            _gridModel.LevelFinished -= _tableView.SwitchNextLevelAfterAnimation;
+            _gridModel.LevelFinished -= OnLevelFinished;
+        }
+
+        private void OnLevelFinished()
+        {
+            _levelIsFinished = true;
+            _levelLoader.SwitchNextLevel();
+            _tableView.AnimationEnded += OnTableAnimationEnded;
+        }
+        private void OnTableAnimationEnded()
+        {
+            _tableView.AnimationEnded -= OnTableAnimationEnded;
+            _levelIsFinished = false;
+            _tableView.InitNewLevel();
         }
 
         private void OnApplicationClosed()
         {
+            _appActiveHandler.ApplicationClosed -= OnApplicationClosed;
+
             SaveLevel();
         }
+        private void OnApplicationPaused()
+        {
+            _appActiveHandler.ApplicationPaused -= OnApplicationPaused;
+
+            SaveLevel();
+        }
+
         private void SaveLevel()
         {
             var levelData = new LevelData()
@@ -67,7 +117,6 @@ namespace OctanGames.Gameplay
             };
 
             _dataService.SaveData(LevelLoader.SAVE_FILE_PATH, levelData);
-            _appActiveHandler.ApplicationClosed -= OnApplicationClosed;
         }
     }
 }

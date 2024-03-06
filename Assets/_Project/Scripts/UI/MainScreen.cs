@@ -10,11 +10,11 @@ namespace OctanGames.UI
         [SerializeField] private Button _restartButton;
         [SerializeField] private Button _nextLevelButton;
 
-        private TableView _tableView;
+        private GridController _gridController;
 
         private void Start()
         {
-            _tableView = ServiceLocator.GetInstance<TableView>();
+            _gridController = ServiceLocator.GetInstance<GridController>();
 
             _restartButton.onClick.AddListener(OnRestartButtonClicked);
             _nextLevelButton.onClick.AddListener(OnNextLevelButtonClicked);
@@ -29,12 +29,12 @@ namespace OctanGames.UI
 
         private void OnRestartButtonClicked()
         {
-            _tableView.RestartLevel();
+            _gridController.RestartLevel();
         }
 
         private void OnNextLevelButtonClicked()
         {
-            _tableView.SwitchNextLevel();
+            _gridController.SwitchNextLevel();
         }
     }
 }

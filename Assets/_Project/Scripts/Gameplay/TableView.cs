@@ -13,6 +13,7 @@ namespace OctanGames.Gameplay
     public class TableView : MonoBehaviour
     {
         public event Action<Vector2Int, Vector2Int> CellMoved;
+        public event Action AnimationEnded;
 
         [Header("Properties")]
         [SerializeField] private float _tableWidth;
@@ -34,7 +35,6 @@ namespace OctanGames.Gameplay
         private int _columns;
 
         private bool _isAnimated;
-        private Action _callBackAfterAnimation;
 
         private readonly List<CellView> _allCells = new();
         private readonly Queue<List<Sequence>> _animationQueue = new();
@@ -42,17 +42,13 @@ namespace OctanGames.Gameplay
 
         private void Start()
         {
-            _cellSettings = ServiceLocator.GetInstance<CellSettings>();
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
-            _gridController = new GridController(this);
+            _cellSettings = ServiceLocator.GetInstance<CellSettings>();
+            _gridController = ServiceLocator.GetInstance<GridController>();
 
             DOTween.defaultAutoPlay = AutoPlay.None;
 
             InitNewLevel();
-        }
-        private void OnDestroy()
-        {
-            _gridController.Dispose();
         }
         private void OnDrawGizmos()
         {
@@ -63,6 +59,35 @@ namespace OctanGames.Gameplay
                 corner.RightUpCorner,
                 corner.LeftDownCorner,
                 corner.RightDownCorner);
+        }
+
+        public void InitNewLevel()
+        {
+            int[,] map = _levelLoader.LoadCurrentLevel();
+            _rows = map.GetLength(0);
+            _columns = map.GetLength(1);
+
+            CornerTuple tableCorners = transform.position.GetCornersFromCenter(_tableHeight, _tableWidth);
+
+            GenerateTable(map, tableCorners);
+            _gridController.Init(new GridModel(map, _rows, _columns));
+
+            Debug.Log("Init new level");
+        }
+        public void DestroyTable()
+        {
+            _animationQueue.Clear();
+
+            foreach (CellView cell in _allCells)
+            {
+                if (cell != null)
+                {
+                    cell.Destroy();
+                }
+            }
+            _allCells.Clear();
+
+            _isAnimated = false;
         }
 
         public void AnimateCellSwapping(Vector2Int startPosition, Vector2Int endPosition)
@@ -140,52 +165,6 @@ namespace OctanGames.Gameplay
             }
         }
 
-        public void RestartLevel()
-        {
-            DestroyTable();
-            InitNewLevel();
-        }
-        public void SwitchNextLevel()
-        {
-            _levelLoader.SwitchNextLevel();
-            DestroyTable();
-            InitNewLevel();
-        }
-        public void SwitchNextLevelAfterAnimation()
-        {
-            _levelLoader.SwitchNextLevel();
-            _callBackAfterAnimation = InitNewLevel;
-        }
-        private void InitNewLevel()
-        {
-            int[,] map = _levelLoader.LoadCurrentLevel();
-            _rows = map.GetLength(0);
-            _columns = map.GetLength(1);
-
-            CornerTuple tableCorners = transform.position.GetCornersFromCenter(_tableHeight, _tableWidth);
-
-            GenerateTable(map, tableCorners);
-            _gridController.Init(new GridModel(map, _rows, _columns));
-            _callBackAfterAnimation = null;
-
-            Debug.Log("Init new level");
-        }
-        private void DestroyTable()
-        {
-            _animationQueue.Clear();
-
-            foreach (CellView cell in _allCells)
-            {
-                if (cell != null)
-                {
-                    cell.Destroy();
-                }
-            }
-            _allCells.Clear();
-
-            _isAnimated = false;
-        }
-
         private Sequence GetCellMovementSequence(CellView cell, Vector2Int targetIndex, float duration)
         {
             Vector3 newPosition = IndexToPosition(targetIndex);
@@ -232,7 +211,7 @@ namespace OctanGames.Gameplay
             else
             {
                 _isAnimated = false;
-                _callBackAfterAnimation?.Invoke();
+                AnimationEnded?.Invoke();
             }
         }
 
