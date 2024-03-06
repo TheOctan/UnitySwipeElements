@@ -12,6 +12,8 @@ namespace OctanGames.Gameplay
         private readonly TableView _tableView;
         private GridModel _gridModel;
 
+        private bool _levelIsFinished;
+
         public GridController(TableView tableView)
         {
             _tableView = tableView;
@@ -39,12 +41,22 @@ namespace OctanGames.Gameplay
 
         public void SwitchNextLevel()
         {
+            if (_levelIsFinished)
+            {
+                return;
+            }
+
             _levelLoader.SwitchNextLevel();
             _tableView.DestroyTable();
             _tableView.InitNewLevel();
         }
         public void RestartLevel()
         {
+            if (_levelIsFinished)
+            {
+                return;
+            }
+
             _tableView.DestroyTable();
             _tableView.InitNewLevel();
         }
@@ -68,12 +80,14 @@ namespace OctanGames.Gameplay
 
         private void OnLevelFinished()
         {
+            _levelIsFinished = true;
             _levelLoader.SwitchNextLevel();
             _tableView.AnimationEnded += OnTableAnimationEnded;
         }
         private void OnTableAnimationEnded()
         {
             _tableView.AnimationEnded -= OnTableAnimationEnded;
+            _levelIsFinished = false;
             _tableView.InitNewLevel();
         }
 
