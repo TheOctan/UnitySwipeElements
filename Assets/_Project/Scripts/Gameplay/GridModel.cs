@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using OctanGames.Extensions;
+using UnityEngine;
 
 namespace OctanGames.Gameplay
 {
     public class GridModel
     {
+        public const int COUNT_MATCHES = 3;
         public const int EMPTY_CELL = 0;
-        
+
+        public event Action<Vector2Int, Vector2Int> CellPositionChanged;
         public event Action<List<FallData>> CellsFell;
+        public event Action<List<Vector2Int>> CellsDestroyed;
         public event Action LevelFinished;
 
         private readonly int[,] _map;
@@ -18,6 +25,37 @@ namespace OctanGames.Gameplay
             _map = map;
             _rows = rows;
             _columns = columns;
+        }
+
+        public void MoveCell(Vector2Int startPosition, Vector2Int endPosition)
+        {
+            SwapCells(startPosition, endPosition);
+
+            CellPositionChanged?.Invoke(startPosition, endPosition);
+
+            bool isLevelFinished;
+            bool isCellsDestroying;
+
+            do
+            {
+                bool isCellsFalling;
+                do
+                {
+                    isCellsFalling = CheckFallingCells();
+                } while (isCellsFalling);
+
+                isCellsDestroying = CheckDestroyingCells();
+                isLevelFinished = IsLevelFinished();
+
+            } while (isCellsDestroying && !isLevelFinished);
+        }
+        private void SwapCells(Vector2Int startPosition, Vector2Int endPosition)
+        {
+            int firstElement = _map.GetElementByIndex(startPosition);
+            int secondElement = _map.GetElementByIndex(endPosition);
+
+            _map.SetElementByIndex(startPosition, secondElement);
+            _map.SetElementByIndex(endPosition, firstElement);
         }
 
         private bool CheckFallingCells()
@@ -75,6 +113,100 @@ namespace OctanGames.Gameplay
                 _map.SetElementByIndex(startIndex, EMPTY_CELL);
             }
         }
+
+        private bool CheckDestroyingCells()
+        {
+            var destroyIndexes = new List<Vector2Int>();
+
+            CheckVerticalMatches(destroyIndexes);
+            CheckHorizontalMatches(destroyIndexes);
+
+            destroyIndexes = destroyIndexes.Distinct().ToList();
+
+            ResetCells(destroyIndexes);
+
+            bool isDestroy = destroyIndexes.Count > 0;
+            if (isDestroy)
+            {
+                CellsDestroyed?.Invoke(destroyIndexes);
+            }
+
+            return isDestroy;
+        }
+        private void CheckVerticalMatches(List<Vector2Int> destroyIndexes)
+        {
+            for (var i = 0; i < _rows; i++)
+            {
+                var columnIndexes = new List<Vector2Int>();
+                for (var j = 1; j < _columns; j++)
+                {
+                    if (_map[i, j] != EMPTY_CELL && _map[i, j] == _map[i, j - 1])
+                    {
+                        if (columnIndexes.Count == 0)
+                        {
+                            columnIndexes.Add(new Vector2Int(i, j - 1));
+                        }
+
+                        columnIndexes.Add(new Vector2Int(i, j));
+                    }
+                    else
+                    {
+                        if (columnIndexes.Count >= COUNT_MATCHES)
+                        {
+                            destroyIndexes.AddRange(columnIndexes);
+                        }
+
+                        columnIndexes.Clear();
+                    }
+                }
+
+                if (columnIndexes.Count >= COUNT_MATCHES)
+                {
+                    destroyIndexes.AddRange(columnIndexes);
+                }
+            }
+        }
+        private void CheckHorizontalMatches(List<Vector2Int> destroyIndexes)
+        {
+            for (var j = 0; j < _columns; j++)
+            {
+                var rowIndexes = new List<Vector2Int>();
+                for (var i = 1; i < _rows; i++)
+                {
+                    if (_map[i, j] != EMPTY_CELL && _map[i, j] == _map[i - 1, j])
+                    {
+                        if (rowIndexes.Count == 0)
+                        {
+                            rowIndexes.Add(new Vector2Int(i - 1, j));
+                        }
+
+                        rowIndexes.Add(new Vector2Int(i, j));
+                    }
+                    else
+                    {
+                        if (rowIndexes.Count >= COUNT_MATCHES)
+                        {
+                            destroyIndexes.AddRange(rowIndexes);
+                        }
+
+                        rowIndexes.Clear();
+                    }
+                }
+
+                if (rowIndexes.Count >= COUNT_MATCHES)
+                {
+                    destroyIndexes.AddRange(rowIndexes);
+                }
+            }
+        }
+        private void ResetCells(List<Vector2Int> destroyIndexes)
+        {
+            foreach (Vector2Int index in destroyIndexes)
+            {
+                _map.SetElementByIndex(index, EMPTY_CELL);
+            }
+        }
+
         private bool IsLevelFinished()
         {
             for (var i = 0; i < _rows; i++)
