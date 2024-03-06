@@ -39,11 +39,14 @@ namespace OctanGames.Gameplay
 
         public void SwitchNextLevel()
         {
-            _tableView.SwitchNextLevel();
+            _levelLoader.SwitchNextLevel();
+            _tableView.DestroyTable();
+            _tableView.InitNewLevel();
         }
         public void RestartLevel()
         {
-            _tableView.RestartLevel();
+            _tableView.DestroyTable();
+            _tableView.InitNewLevel();
         }
 
         private void SubscribeToModel()
@@ -52,7 +55,7 @@ namespace OctanGames.Gameplay
             _gridModel.CellPositionChanged += _tableView.AnimateCellSwapping;
             _gridModel.CellsFell += _tableView.AnimateCellFalling;
             _gridModel.CellsDestroyed += _tableView.AnimateCellDestroying;
-            _gridModel.LevelFinished += _tableView.SwitchNextLevelAfterAnimation;
+            _gridModel.LevelFinished += OnLevelFinished;
         }
         private void UnsubscribeFromModel()
         {
@@ -60,7 +63,18 @@ namespace OctanGames.Gameplay
             _gridModel.CellPositionChanged -= _tableView.AnimateCellSwapping;
             _gridModel.CellsFell -= _tableView.AnimateCellFalling;
             _gridModel.CellsDestroyed -= _tableView.AnimateCellDestroying;
-            _gridModel.LevelFinished -= _tableView.SwitchNextLevelAfterAnimation;
+            _gridModel.LevelFinished -= OnLevelFinished;
+        }
+
+        private void OnLevelFinished()
+        {
+            _levelLoader.SwitchNextLevel();
+            _tableView.AnimationEnded += OnTableAnimationEnded;
+        }
+        private void OnTableAnimationEnded()
+        {
+            _tableView.AnimationEnded -= OnTableAnimationEnded;
+            _tableView.InitNewLevel();
         }
 
         private void OnApplicationClosed()
@@ -69,6 +83,8 @@ namespace OctanGames.Gameplay
         }
         private void SaveLevel()
         {
+            _appActiveHandler.ApplicationClosed -= OnApplicationClosed;
+
             var levelData = new LevelData()
             {
                 Map = _gridModel.GetMapScreenshot(),
@@ -76,7 +92,6 @@ namespace OctanGames.Gameplay
             };
 
             _dataService.SaveData(LevelLoader.SAVE_FILE_PATH, levelData);
-            _appActiveHandler.ApplicationClosed -= OnApplicationClosed;
         }
     }
 }
