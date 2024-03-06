@@ -11,6 +11,7 @@ namespace OctanGames.Infrastructure
         [SerializeField] private LevelLibraryLibrary _levels;
         [SerializeField] private TableView _tableView;
         [SerializeField] private LevelLoader _levelLoader;
+        [SerializeField] private AppActiveHandler _appActiveHandler;
 
         private void Awake()
         {
@@ -19,6 +20,7 @@ namespace OctanGames.Infrastructure
             ServiceLocator.Bind(_tableView);
             ServiceLocator.Bind(_levelLoader);
             ServiceLocator.Bind<IDataService>(new JsonDataService());
+            ServiceLocator.Bind<IAppActiveHandler>(_appActiveHandler);
         }
     }
 }
