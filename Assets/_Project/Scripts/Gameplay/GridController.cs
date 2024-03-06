@@ -37,6 +37,15 @@ namespace OctanGames.Gameplay
             UnsubscribeFromModel();
         }
 
+        public void SwitchNextLevel()
+        {
+            _tableView.SwitchNextLevel();
+        }
+        public void RestartLevel()
+        {
+            _tableView.RestartLevel();
+        }
+
         private void SubscribeToModel()
         {
             _tableView.CellMoved += _gridModel.MoveCell;

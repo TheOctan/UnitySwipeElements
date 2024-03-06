@@ -34,7 +34,7 @@ namespace OctanGames.Gameplay
         private int _columns;
 
         private bool _isAnimated;
-        private Action _callBackAfterAnimation;
+        private Action AnimationEnded;
 
         private readonly List<CellView> _allCells = new();
         private readonly Queue<List<Sequence>> _animationQueue = new();
@@ -42,17 +42,13 @@ namespace OctanGames.Gameplay
 
         private void Start()
         {
-            _cellSettings = ServiceLocator.GetInstance<CellSettings>();
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
-            _gridController = new GridController(this);
+            _cellSettings = ServiceLocator.GetInstance<CellSettings>();
+            _gridController = ServiceLocator.GetInstance<GridController>();
 
             DOTween.defaultAutoPlay = AutoPlay.None;
 
             InitNewLevel();
-        }
-        private void OnDestroy()
-        {
-            _gridController.Dispose();
         }
         private void OnDrawGizmos()
         {
@@ -154,7 +150,7 @@ namespace OctanGames.Gameplay
         public void SwitchNextLevelAfterAnimation()
         {
             _levelLoader.SwitchNextLevel();
-            _callBackAfterAnimation = InitNewLevel;
+            AnimationEnded = InitNewLevel;
         }
         private void InitNewLevel()
         {
@@ -166,7 +162,7 @@ namespace OctanGames.Gameplay
 
             GenerateTable(map, tableCorners);
             _gridController.Init(new GridModel(map, _rows, _columns));
-            _callBackAfterAnimation = null;
+            AnimationEnded = null;
 
             Debug.Log("Init new level");
         }
@@ -232,7 +228,7 @@ namespace OctanGames.Gameplay
             else
             {
                 _isAnimated = false;
-                _callBackAfterAnimation?.Invoke();
+                AnimationEnded?.Invoke();
             }
         }
 
