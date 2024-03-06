@@ -18,7 +18,7 @@ namespace OctanGames.Infrastructure
             ServiceLocator.Bind(_cellSettings);
             ServiceLocator.Bind<ILevelLibrary>(_levels);
             ServiceLocator.Bind(_tableView);
-            ServiceLocator.Bind(_levelLoader);
+            ServiceLocator.Bind<ILevelLoader>(_levelLoader);
             ServiceLocator.Bind<IDataService>(new JsonDataService());
             ServiceLocator.Bind<IAppActiveHandler>(_appActiveHandler);
         }

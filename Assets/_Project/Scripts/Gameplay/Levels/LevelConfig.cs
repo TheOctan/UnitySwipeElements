@@ -7,16 +7,17 @@ namespace OctanGames.Gameplay.Levels
     [Serializable]
     public class LevelConfig : ScriptableObject
     {
-        [HideInInspector] public Color[] _Colors = new[] {Color.white, Color.blue, Color.yellow};
+        [HideInInspector] public Color[] _Colors = { Color.white, Color.blue, Color.yellow };
         [HideInInspector] public int Rows;
         [HideInInspector] public int Columns;
+
         public int[] Map;
         private int _rows;
         private int _columns;
 
         public void CreateMap()
         {
-            Map = new int[Rows*Columns];
+            Map = new int[Rows * Columns];
             _rows = Rows;
             _columns = Columns;
         }
@@ -26,22 +27,31 @@ namespace OctanGames.Gameplay.Levels
             var newArray = new int[Rows, Columns];
             int minRows = Math.Min(Rows, _rows);
             int minCols = Math.Min(Columns, _columns);
-            for(int i = 0; i < minRows; i++)
-            for(int j = 0; j < minCols; j++)
-                newArray[i, j] = this[i, j];
-            
+
+            for (var i = 0; i < minRows; i++)
+            {
+                for (var j = 0; j < minCols; j++)
+                {
+                    newArray[i, j] = this[i, j];
+                }
+            }
+
             CreateMap();
-            for(int i = 0; i < Rows; i++)
-            for(int j = 0; j < Columns; j++)
-                this[i, j] = newArray[i, j];
+            for (var i = 0; i < Rows; i++)
+            {
+                for (var j = 0; j < Columns; j++)
+                {
+                    this[i, j] = newArray[i, j];
+                }
+            }
         }
 
         public int[,] GetMap()
         {
             var newArray = new int[Rows, Columns];
-            for (int i = 0; i < Rows; i++)
+            for (var i = 0; i < Rows; i++)
             {
-                for (int j = 0; j < Columns; j++)
+                for (var j = 0; j < Columns; j++)
                 {
                     newArray[i, j] = this[i, j];
                 }
@@ -54,7 +64,7 @@ namespace OctanGames.Gameplay.Levels
         {
             return Map == null;
         }
-        
+
         public int this[int i, int j]
         {
             get => Map[i * Columns + j];
