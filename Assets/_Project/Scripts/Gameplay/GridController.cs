@@ -85,13 +85,14 @@ namespace OctanGames.Gameplay
         private void OnLevelFinished()
         {
             _levelIsFinished = true;
-            _levelLoader.SwitchNextLevel();
             _tableView.AnimationEnded += OnTableAnimationEnded;
         }
         private void OnTableAnimationEnded()
         {
             _tableView.AnimationEnded -= OnTableAnimationEnded;
             _levelIsFinished = false;
+
+            _levelLoader.SwitchNextLevel();
             _tableView.InitNewLevel();
         }
 
