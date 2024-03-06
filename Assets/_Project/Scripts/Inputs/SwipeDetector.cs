@@ -1,9 +1,10 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace OctanGames.Inputs
 {
-    public class SwipeDetector : MonoBehaviour
+    public class SwipeDetector : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         public event Action<SwipeData> Swiped;
 
@@ -12,26 +13,16 @@ namespace OctanGames.Inputs
         private Vector2 _touchUpPosition;
         private Vector2 _touchDownPosition;
 
-        private void Update()
+        public void OnPointerDown(PointerEventData eventData)
         {
-            if (Input.touches.Length <= 0)
-            {
-                return;
-            }
+            _touchUpPosition = eventData.position;
+            _touchDownPosition = eventData.position;
+        }
 
-            Touch touch = Input.touches[0];
-
-            switch (touch.phase)
-            {
-                case TouchPhase.Began:
-                    _touchUpPosition = touch.position;
-                    _touchDownPosition = touch.position;
-                    break;
-                case TouchPhase.Ended:
-                    _touchDownPosition = touch.position;
-                    DetectSwipe();
-                    break;
-            }
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            _touchDownPosition = eventData.position;
+            DetectSwipe();
         }
 
         private void DetectSwipe()
@@ -66,7 +57,7 @@ namespace OctanGames.Inputs
             {
                 direction = _touchDownPosition.x - _touchUpPosition.x > 0
                     ? SwipeDirection.Right
-                    : SwipeDirection.Down;
+                    : SwipeDirection.Left;
             }
 
             return direction;
