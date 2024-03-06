@@ -14,11 +14,13 @@
         {
             if (_gridModel != null)
             {
+                _gridModel.CellsFell -= _tableView.AnimateCellFalling;
                 _gridModel.LevelFinished -= _tableView.SwitchNextLevelAfterAnimation;
             }
 
             _gridModel = model;
 
+            _gridModel.CellsFell += _tableView.AnimateCellFalling;
             _gridModel.LevelFinished += _tableView.SwitchNextLevelAfterAnimation;
         }
     }

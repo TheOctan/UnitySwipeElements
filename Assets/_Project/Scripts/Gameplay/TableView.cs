@@ -12,8 +12,6 @@ namespace OctanGames.Gameplay
 {
     public class TableView : MonoBehaviour
     {
-        public const int EMPTY_CELL = 0;
-
         public event Action<Vector2Int, Vector2Int> CellMoved;
 
         [Header("Properties")]
@@ -92,17 +90,17 @@ namespace OctanGames.Gameplay
             var animationList = new List<Sequence>();
             foreach (FallData modelFall in cellModelFalls)
             {
-                CellView cell = _cellMap[modelFall.StartIndex.x, modelFall.StartIndex.y];
+                Vector2Int startIndex = modelFall.StartIndex;
+                Vector2Int targetIndex = modelFall.StartIndex + Vector2Int.right * modelFall.FallStep;
 
-                Vector2Int targetIndex = modelFall.StartIndex;
-                targetIndex.x += modelFall.FallStep;
+                CellView cell = GetCellByIndex(startIndex);
 
                 float duration = _fallDuration * modelFall.FallStep;
                 Sequence sequence = GetCellMovementSequence(cell, targetIndex, duration);
                 animationList.Add(sequence);
 
                 SetCellByIndex(targetIndex, cell);
-                SetCellByIndex(modelFall.StartIndex, null);
+                SetCellByIndex(startIndex, null);
             }
 
             if (animationList.Count > 0)
@@ -270,7 +268,7 @@ namespace OctanGames.Gameplay
         private void SetupCell(int[,] map, Vector2Int index, Vector3 cellPosition, Vector2 cellSize)
         {
             int cellType = map[index.x, index.y];
-            if (cellType == EMPTY_CELL)
+            if (cellType == GridModel.EMPTY_CELL)
             {
                 return;
             }
@@ -374,11 +372,11 @@ namespace OctanGames.Gameplay
         }
         private CellView GetCellByIndex(Vector2Int index)
         {
-            return _cellMap[index.x, index.y];
+            return _cellMap.GetElementByIndex(index);
         }
         private void SetCellByIndex(Vector2Int index, CellView cell)
         {
-            _cellMap[index.x, index.y] = cell;
+            _cellMap.SetElementByIndex(index, cell);
         }
     }
 }
