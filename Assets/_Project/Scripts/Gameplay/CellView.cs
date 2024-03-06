@@ -31,6 +31,7 @@ namespace OctanGames.Gameplay
         private Sequence _animationLoop;
         private Sprite[] _idleAnimation;
         private Sprite[] _destroyAnimation;
+
         private int _idleAnimationFrame;
         private int _destroyAnimationFrame;
         private float _destroyAnimationDuration;
@@ -39,7 +40,7 @@ namespace OctanGames.Gameplay
         public float AspectRatio => Width / Height;
         private float Width => _right + _left;
         private float Height => _up + _down;
-        public int DestroyAnimationFrame
+        private int DestroyAnimationFrame
         {
             get => _destroyAnimationFrame;
             set
@@ -62,23 +63,16 @@ namespace OctanGames.Gameplay
         {
             _swipeDetector.Swiped += OnSwiped;
         }
-
-        private void OnSwiped(SwipeData swipeData)
-        {
-            Swiped?.Invoke(this, swipeData.Direction);
-        }
-
         private void OnDestroy()
         {
             _swipeDetector.Swiped -= OnSwiped;
         }
-
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.white;
             Vector3 lossyScale = transform.lossyScale;
 
-            var corner = transform.position.GetCornersFromSides(
+            CornerTuple corner = transform.position.GetCornersFromSides(
                 _up * lossyScale.y,
                 _down * lossyScale.y,
                 _left * lossyScale.x,
@@ -97,6 +91,61 @@ namespace OctanGames.Gameplay
             _destroyAnimationDuration = destroyDuration;
 
             AnimateIdle();
+        }
+        public void SetSize(Vector2 size)
+        {
+            Transform parent = transform.parent;
+            transform.parent = null;
+
+            transform.localScale = new Vector3(
+                size.x / (Width * transform.localScale.x),
+                size.y / (Height * transform.localScale.y),
+                transform.localScale.z);
+
+            transform.parent = parent;
+        }
+        public void SetPosition(Vector3 position)
+        {
+            Vector3 localScale = transform.localScale;
+
+            position.x -= (_up - _down) / 2f * localScale.x;
+            position.y -= (_right - _left) / 2f * localScale.y;
+
+            transform.position = position;
+        }
+        public void SetAnimations(CellSettings.CellAnimation cellAnimation)
+        {
+            _idleAnimation = cellAnimation.IdleAnimation;
+            _destroyAnimation = cellAnimation.DestroyAnimation;
+
+            _idleAnimationFrame = 0;
+            _destroyAnimationFrame = 0;
+
+            SetSprite(cellAnimation.Sprite);
+        }
+        public void SetSortingOrder(int order)
+        {
+            _spriteRenderer.sortingOrder = order;
+        }
+        public void Destroy()
+        {
+            _animationLoop?.Kill();
+            Destroy(gameObject);
+        }
+        public void AnimateDestruction()
+        {
+            _animationLoop?.Kill();
+
+            TweenerCore<int,int,NoOptions> animationSequence = DOTween.To(
+                () => DestroyAnimationFrame, 
+                x => DestroyAnimationFrame = x, 
+                _destroyAnimation.Length - 1,
+                _destroyAnimationDuration);
+
+            _animationLoop = DOTween.Sequence()
+                .Append(animationSequence)
+                .SetEase(Ease.Linear)
+                .AppendCallback(Destroy);
         }
 
         private void AnimateIdle()
@@ -122,71 +171,13 @@ namespace OctanGames.Gameplay
                 })
                 .SetLoops(ENDLESS_LOOP, LoopType.Restart);
         }
-
-        public void AnimateDestruction()
+        private void OnSwiped(SwipeData swipeData)
         {
-            _animationLoop?.Kill();
-
-            TweenerCore<int,int,NoOptions> animationSequence = DOTween.To(
-                () => DestroyAnimationFrame, 
-                x => DestroyAnimationFrame = x, 
-                _destroyAnimation.Length - 1,
-                _destroyAnimationDuration);
-
-            _animationLoop = DOTween.Sequence()
-                .Append(animationSequence)
-                .SetEase(Ease.Linear)
-                .AppendCallback(Destroy);
+            Swiped?.Invoke(this, swipeData.Direction);
         }
-
-        public void SetSize(Vector2 size)
-        {
-            Transform parent = transform.parent;
-            transform.parent = null;
-
-            transform.localScale = new Vector3(
-                size.x / (Width * transform.lossyScale.x),
-                size.y / (Height * transform.localScale.y),
-                transform.localScale.z);
-
-            transform.parent = parent;
-        }
-
-        public void SetPosition(Vector3 position)
-        {
-            Vector3 localScale = transform.localScale;
-
-            position.x -= (_up - _down) / 2f * localScale.x;
-            position.y -= (_right - _left) / 2f * localScale.y;
-
-            transform.position = position;
-        }
-
         private void SetSprite(Sprite sprite)
         {
             _spriteRenderer.sprite = sprite;
-        }
-
-        public void SetAnimations(CellSettings.CellAnimation cellAnimation)
-        {
-            _idleAnimation = cellAnimation.IdleAnimation;
-            _destroyAnimation = cellAnimation.DestroyAnimation;
-
-            _idleAnimationFrame = 0;
-            _destroyAnimationFrame = 0;
-
-            SetSprite(cellAnimation.Sprite);
-        }
-
-        public void SetSortingOrder(int order)
-        {
-            _spriteRenderer.sortingOrder = order;
-        }
-
-        public void Destroy()
-        {
-            _animationLoop?.Kill();
-            Destroy(gameObject);
         }
     }
 }

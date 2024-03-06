@@ -38,7 +38,6 @@ namespace OctanGames.Gameplay
 
         private readonly List<CellView> _allCells = new();
         private readonly Queue<List<Sequence>> _animationQueue = new();
-
         private readonly Vector2Int _invalidPosition = new(-1,-1);
 
         private void Start()
