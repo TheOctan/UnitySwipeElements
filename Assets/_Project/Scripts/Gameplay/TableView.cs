@@ -137,6 +137,11 @@ namespace OctanGames.Gameplay
             }
         }
 
+        public void RestartLevel()
+        {
+            DestroyTable();
+            InitNewLevel();
+        }
         public void SwitchNextLevel()
         {
             _levelLoader.SwitchNextLevel();
