@@ -23,8 +23,8 @@ namespace OctanGames.Gameplay
         [SerializeField, Min(0.1f)] private float _destroyAnimationDuration = 1.5f;
         [SerializeField, Min(0.1f)] private float _idleAnimationDuration = 1.5f;
 
+        private ILevelLoader _levelLoader;
         private CellSettings _cellSettings;
-        private LevelLoader _levelLoader;
         private GridController _gridController;
 
         private CellView[,] _cellMap;
@@ -43,12 +43,16 @@ namespace OctanGames.Gameplay
         private void Start()
         {
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
-            _levelLoader = ServiceLocator.GetInstance<LevelLoader>();
+            _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
             _gridController = new GridController(this);
 
             DOTween.defaultAutoPlay = AutoPlay.None;
 
             InitNewLevel();
+        }
+        private void OnDestroy()
+        {
+            _gridController.Dispose();
         }
         private void OnDrawGizmos()
         {
