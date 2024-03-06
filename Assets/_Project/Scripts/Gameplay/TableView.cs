@@ -50,6 +50,10 @@ namespace OctanGames.Gameplay
 
             InitNewLevel();
         }
+        private void OnDestroy()
+        {
+            _gridController.Dispose();
+        }
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.white;

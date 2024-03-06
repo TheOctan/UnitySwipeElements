@@ -28,6 +28,7 @@ namespace OctanGames.Gameplay
             }
 
             var levelData = _dataService.LoadData<LevelData>(SAVE_FILE_PATH);
+            CurrentLevel = levelData.CurrentLevel;
             _dataService.DeleteFile(SAVE_FILE_PATH);
 
             return levelData.Map;

@@ -7,6 +7,7 @@ namespace OctanGames.Services
     {
         public event Action ApplicationPaused;
         public event Action ApplicationResumed;
+        public event Action ApplicationClosed;
 
         private bool _isPaused;
 
@@ -14,10 +15,15 @@ namespace OctanGames.Services
         {
             CheckPauseStatus(!hasFocus);
         }
-
         private void OnApplicationPause(bool pauseStatus)
         {
             CheckPauseStatus(pauseStatus);
+        }
+
+        private void OnApplicationQuit()
+        {
+            Debug.Log("Application closed");
+            ApplicationClosed?.Invoke();
         }
 
         private void CheckPauseStatus(bool pauseStatus)

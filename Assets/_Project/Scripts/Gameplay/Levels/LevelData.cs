@@ -6,5 +6,6 @@ namespace OctanGames.Gameplay.Levels
     public struct LevelData
     {
         public int[,] Map;
+        public int CurrentLevel;
     }
 }

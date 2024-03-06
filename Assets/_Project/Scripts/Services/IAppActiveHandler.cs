@@ -6,5 +6,6 @@ namespace OctanGames.Services
     {
         event Action ApplicationPaused;
         event Action ApplicationResumed;
+        event Action ApplicationClosed;
     }
 }

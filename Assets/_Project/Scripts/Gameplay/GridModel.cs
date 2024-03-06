@@ -27,6 +27,10 @@ namespace OctanGames.Gameplay
             _columns = columns;
         }
 
+        public int[,] GetMapScreenshot()
+        {
+            return _map.Clone() as int[,];
+        }
         public void MoveCell(Vector2Int startPosition, Vector2Int endPosition)
         {
             SwapCells(startPosition, endPosition);
