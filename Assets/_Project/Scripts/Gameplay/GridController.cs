@@ -1,5 +1,4 @@
-﻿using OctanGames.Gameplay.Levels;
-using OctanGames.Infrastructure;
+﻿using OctanGames.Infrastructure;
 using OctanGames.Services;
 
 namespace OctanGames.Gameplay
@@ -7,7 +6,6 @@ namespace OctanGames.Gameplay
     public class GridController
     {
         private readonly IAppActiveHandler _appActiveHandler;
-        private readonly IDataService _dataService;
         private readonly ILevelLoader _levelLoader;
         private readonly TableView _tableView;
         private GridModel _gridModel;
@@ -17,7 +15,6 @@ namespace OctanGames.Gameplay
         public GridController(TableView tableView)
         {
             _tableView = tableView;
-            _dataService = ServiceLocator.GetInstance<IDataService>();
             _appActiveHandler = ServiceLocator.GetInstance<IAppActiveHandler>();
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
 
@@ -25,6 +22,7 @@ namespace OctanGames.Gameplay
             _appActiveHandler.ApplicationClosed += OnApplicationClosed;
 #else
             _appActiveHandler.ApplicationPaused += OnApplicationPaused;
+            _appActiveHandler.ApplicationResumed += OnApplicationResumed;
 #endif
         }
 
@@ -41,6 +39,11 @@ namespace OctanGames.Gameplay
         public void Dispose()
         {
             UnsubscribeFromModel();
+
+#if !UNITY_EDITOR
+            _appActiveHandler.ApplicationPaused -= OnApplicationPaused;
+            _appActiveHandler.ApplicationResumed -= OnApplicationResumed;
+#endif
         }
 
         public void SwitchNextLevel()
@@ -104,20 +107,18 @@ namespace OctanGames.Gameplay
         }
         private void OnApplicationPaused()
         {
-            _appActiveHandler.ApplicationPaused -= OnApplicationPaused;
-
             SaveLevel();
+        }
+
+        private void OnApplicationResumed()
+        {
+            _levelLoader.DeleteSavedLevel();
         }
 
         private void SaveLevel()
         {
-            var levelData = new LevelData()
-            {
-                Map = _gridModel.GetMapScreenshot(),
-                CurrentLevel = _levelLoader.CurrentLevel
-            };
-
-            _dataService.SaveData(LevelLoader.SAVE_FILE_PATH, levelData);
+            int[,] map = _gridModel.GetMapScreenshot();
+            _levelLoader.SaveLevel(map);
         }
     }
 }
