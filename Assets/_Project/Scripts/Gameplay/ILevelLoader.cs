@@ -4,6 +4,8 @@ namespace OctanGames.Gameplay
     {
         int CurrentLevel { get; }
         int[,] LoadCurrentLevel();
+        void SaveLevel(int[,] map);
+        void DeleteSavedLevel();
         void SwitchNextLevel();
     }
 }
