@@ -6,6 +6,7 @@ using OctanGames.Extensions;
 using OctanGames.Gameplay.Levels;
 using OctanGames.Infrastructure;
 using OctanGames.Inputs;
+using OctanGames.UI.Background;
 using UnityEngine;
 
 namespace OctanGames.Gameplay
@@ -15,6 +16,8 @@ namespace OctanGames.Gameplay
         public event Action<Vector2Int, Vector2Int> CellMoved;
         public event Action AnimationEnded;
 
+        [Header("Components")]
+        [SerializeField] private Camera _camera;
         [Header("Properties")]
         [SerializeField] private float _tableWidth;
         [SerializeField] private float _tableHeight;
@@ -27,6 +30,7 @@ namespace OctanGames.Gameplay
         private ILevelLoader _levelLoader;
         private CellSettings _cellSettings;
         private GridController _gridController;
+        private BackgroundHorizon _backgroundHorizon;
 
         private CellView[,] _cellMap;
         private Vector2 _cellSize;
@@ -45,11 +49,14 @@ namespace OctanGames.Gameplay
             _levelLoader = ServiceLocator.GetInstance<ILevelLoader>();
             _cellSettings = ServiceLocator.GetInstance<CellSettings>();
             _gridController = ServiceLocator.GetInstance<GridController>();
+            _backgroundHorizon = ServiceLocator.GetInstance<BackgroundHorizon>();
 
             DOTween.defaultAutoPlay = AutoPlay.None;
 
+            SetupHorizon();
             InitNewLevel();
         }
+
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.white;
@@ -59,6 +66,18 @@ namespace OctanGames.Gameplay
                 corner.RightUpCorner,
                 corner.LeftDownCorner,
                 corner.RightDownCorner);
+        }
+
+        private void SetupHorizon()
+        {
+            Vector3 horizonPosition = _backgroundHorizon.GetHorizonPosition();
+            Vector3 worldHorizonPosition = _camera.ScreenToWorldPoint(horizonPosition);
+
+            float halfTableHeight = _tableHeight * 0.5f;
+            Vector3 position = transform.position;
+            position.y = worldHorizonPosition.y + halfTableHeight;
+
+            transform.position = position;
         }
 
         public void InitNewLevel()

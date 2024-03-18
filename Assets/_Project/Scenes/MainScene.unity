@@ -444,6 +444,7 @@ MonoBehaviour:
   _tableView: {fileID: 1336485657}
   _levelLoader: {fileID: 1062852015}
   _appActiveHandler: {fileID: 947880645}
+  _backgroundHorizon: {fileID: 1111498052}
 --- !u!114 &1062852015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -606,6 +607,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1111498052 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4997945689332382819, guid: 99d1f73267cd76348a5406c65f908007, type: 3}
+  m_PrefabInstance: {fileID: 1716660803715444409}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5048cc3b40848288b74d736d58e71c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &1336485657 stripped
@@ -811,10 +823,6 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6377020077638810597, guid: 99d1f73267cd76348a5406c65f908007, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -828,6 +836,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1066290766777141486, guid: 6ecf4e34bfad91e4da086ade0623ad0a, type: 3}
+      propertyPath: _camera
+      value: 
+      objectReference: {fileID: 519420031}
     - target: {fileID: 2952641471780896832, guid: 6ecf4e34bfad91e4da086ade0623ad0a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
